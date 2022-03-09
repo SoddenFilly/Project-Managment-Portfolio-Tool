@@ -38,7 +38,6 @@ class PyQtWindow(QWidget):
         # self.layout.setStyleSheet("background-color: rgb(255,0,0);")                      # + self.layout
         self.setLayout(self.layout)
         
-
         self._insert_mywidget(0) 
         self._insert_mywidget(1)    
         self._insert_mywidget(2) 
