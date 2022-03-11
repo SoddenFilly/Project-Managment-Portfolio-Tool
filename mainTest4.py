@@ -30,7 +30,7 @@ class MyWidget(QWidget):
 class PyQtWindow(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setWindowTitle("Layouttest")
+        self.setWindowTitle("LayoutTest")
 
         self.layout = QVBoxLayout() 
         self.layout.setContentsMargins(0,0,0,0) 

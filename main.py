@@ -4,6 +4,7 @@ import time
 import random
 import json   # Low-grade local storage
 import os     # File access
+import math
 
 # For PYQT5 GUI
 from PyQt5.QtWidgets import *        
@@ -81,6 +82,54 @@ class SetupScene(QMainWindow):
         qtRectangle.moveCenter(centerPoint)
         self.move(qtRectangle.topLeft())
 
+
+def MatrixDimensionsSolver(totalCells, cellWidth, layoutWidth, maxCols=False):
+
+    paddingPercentage = 10 # 10%
+    colSize = cellWidth+cellWidth*(paddingPercentage/100)
+    
+    if maxCols == False:
+        cols = math.floor(layoutWidth/colSize)
+        colSize = int(layoutWidth/cols)
+    else:
+        cols = maxCols
+        colSize = int(layoutWidth/cols)
+
+    cellWidth = int(colSize/(100+paddingPercentage)*100)
+    cellWidth = cellWidth-(colSize-cellWidth)/cols*2
+    rowSize = int(colSize/16*9)
+    cellHeight = int(cellWidth/16*9)
+
+    rows = math.ceil(totalCells/cols)
+    # print(cellWidth, paddedCellWidth, maxCellsWidth, fittingPaddedCellsWidth, newCellWidth, newCellHeight)
+
+    print(cellWidth, cellHeight, colSize, rowSize, cols, rows)
+    
+    return cellWidth, cellHeight, colSize, rowSize, cols, rows
+
+
+class BlankWidget(QWidget):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+
+        self.layout = QHBoxLayout()
+        self.setLayout(self.layout)
+
+        # self.edits = [QLineEdit(self) for _ in range(3)]
+        # for edit in self.edits:
+        #     edit.setStyleSheet("background-color: rgb(255, 0, 0);")
+        #     layout.addWidget(edit)
+
+        self.wid = QWidget()
+
+        self.wid.setFixedSize(200, 200)
+        
+        self.wid.setStyleSheet("background-color: rgba(85, 85, 127, 255); border-color:rgba(0, 0, 0, 100); border-width:2px; border-style: solid;")
+        # self.wid.setContentsMargins(0,0,0,0)
+        self.layout.setContentsMargins(0,0,0,0) 
+        self.layout.setSpacing(0)    
+        self.layout.addWidget(self.wid)
+
 class ProjectSelection(QMainWindow):                  
     
     def __init__(self):
@@ -89,6 +138,12 @@ class ProjectSelection(QMainWindow):
         self.show()
         uic.loadUi("projectSelection.ui", self) # Loads "" scene
         self.WindowParams()
+
+        self.thumbnailLayout = QGridLayout()
+        self.thumbnailLayout.setContentsMargins(0,0,0,0)
+        self.thumbnailLayout.setSpacing(0)
+        self.thumbnailLayout_container.setLayout(self.thumbnailLayout)
+        
 
         # button = QPushButton("butt")
 
@@ -114,21 +169,45 @@ class ProjectSelection(QMainWindow):
         self.blur_radius = 0
         self.scaleFactor = 1/2.4
 
-        for i in range(1):
-            # btn = QPushButton("OK")
+        # for i in range(1):
+        #     # btn = QPushButton("OK")
             
 
-            layout = QGridLayout()
+        #     layout = QGridLayout()
 
-            # layout.addWidget(Panel(), 0)
-            layout.addWidget(Color('red'))
+        #     # layout.addWidget(Panel(), 0)
+        #     layout.addWidget(Color('red'))
 
-            # self.frame_7.setLayout(layout)
-            self.widget_p = QWidget()
-            self.widget_p.setLayout(layout)
-            # self.frame_7.setCentralWidget(widget)
-            self.widget_p.setParent(self.frame_7)
-            
+        #     # self.frame_7.setLayout(layout)
+        #     self.widget_p = QWidget()
+        #     self.widget_p.setLayout(layout)
+        #     # self.frame_7.setCentralWidget(widget)
+        #     self.widget_p.setParent(self.frame_7)
+
+        self.projectCount = 0
+        self.projectList = []
+        
+        for i in range(10):
+            self.addNewBlank(self.projectCount) 
+            self.projectCount += 1
+        
+        self.Update()
+
+        # self.addNewBlank() 
+        # self.addNewBlank() 
+        # self.addNewBlank() 
+
+
+    def addNewBlank(self, projectCount):
+
+        self.widget = BlankWidget(self)
+
+        self.projectList.append(self.widget)
+        print(self.projectList)
+
+
+        # self.thumbnailLayout.addWidget(self.widget, 0, projectCount)
+        # self.layout.addWidget(a0, row, column, rowSpan, columnSpan) 
 
 
     # method for widgets
@@ -155,17 +234,45 @@ class ProjectSelection(QMainWindow):
 
     def Update(self):
 
-        self.blurEffect = QGraphicsBlurEffect()
-        self.blurEffect.setBlurRadius(self.blur_radius)
+        # self.blurEffect = QGraphicsBlurEffect()
+        # self.blurEffect.setBlurRadius(self.blur_radius)
         # self.widget_blur.setGraphicsEffect(self.blur_effect)
-        self.frame.setGraphicsEffect(self.blurEffect)
+        # self.frame.setGraphicsEffect(self.blurEffect)
         # self.blurEffect = QGraphicsBlurEffect()
         # self.frame_2.setGraphicsEffect(self.blurEffect)
         # self.blurEffect.setBlurRadius(self.blur_radius)
 
-        self.frame.setFixedSize(380*self.scaleFactor, 220*self.scaleFactor)
+        # self.frame.setFixedSize(380*self.scaleFactor, 220*self.scaleFactor)
         # self.frame_2.setFixedSize(380*self.scaleFactor, 220*self.scaleFactor)
         # self.frame_3.setFixedSize(380*self.scaleFactor, 220*self.scaleFactor)
+        
+        print(self.thumbnailLayout_container.width())
+        layoutWidth = self.thumbnailLayout_container.width()
+
+        cellWidth, cellHeight, colSize, rowSize, cols, rows = MatrixDimensionsSolver(self.projectCount, 100, layoutWidth)
+        
+        spacing = colSize-cellWidth
+        # vSpacer = QSpacerItem(spacing, 0, QSizePolicy.Minimum, QSizePolicy.Minimum)
+        
+        # self.thumbnailLayout.addItem(vSpacer, 0, 0)
+
+        for column, widget in enumerate(self.projectList):
+            widget.setFixedSize(cellWidth, cellHeight)
+            
+            self.thumbnailLayout.setSpacing(spacing)
+            # widget.layout.setContentsMargins((layoutWidth-colSize*cols)/2, 0,0,0) \
+
+            row = math.floor(column/cols)
+            print("Row", row)
+
+            self.thumbnailLayout.addWidget(widget, row, column-row*(cols))
+            print("Column", column+1-row*(cols))
+        
+        vSpacer = QSpacerItem(0, 0, QSizePolicy.Expanding, QSizePolicy.Minimum)
+        hSpacer = QSpacerItem(0, 0, QSizePolicy.Minimum, QSizePolicy.Expanding)
+
+        self.thumbnailLayout.addItem(vSpacer, row, cols)
+        self.thumbnailLayout.addItem(hSpacer, row+1, 0)
 
     def center(self):
         qtRectangle = self.frameGeometry()
@@ -260,8 +367,12 @@ class Animate: # General Animation mini-library for PYQT5 widgets
 
 if __name__ == "__main__": # Runs only if current file was executed (Not freferenced)
 
+    # MatrixDimensionsSolver(7, 100, 500, 2)
+    
+
     app = QApplication(sys.argv)
     # SplashScreen = SplashScreen()
     # SetupScene = SetupScene()
     ProjectSelection = ProjectSelection()
     app.exec_()
+    # print(math.floor(10/5))

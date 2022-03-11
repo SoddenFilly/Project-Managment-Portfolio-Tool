@@ -75,6 +75,16 @@ border: 1.5px solid rgb(76, 76, 113);</string>
     <property name="styleSheet">
      <string notr="true">background-color: rgb(93, 93, 139);</string>
     </property>
+    <widget class="QWidget" name="thumbnailLayout_container" native="true">
+     <property name="geometry">
+      <rect>
+       <x>229</x>
+       <y>29</y>
+       <width>561</width>
+       <height>541</height>
+      </rect>
+     </property>
+    </widget>
    </widget>
    <zorder>backGround</zorder>
    <zorder>SideBar</zorder>
