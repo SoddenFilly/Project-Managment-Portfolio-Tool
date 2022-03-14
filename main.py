@@ -83,10 +83,10 @@ class SetupScene(QMainWindow):
         self.move(qtRectangle.topLeft())
 
 
-def MatrixDimensionsSolver(totalCells, cellWidth, layoutWidth, maxCols=False):
+def MatrixDimensionsSolver(totalCells, cellSize, layoutWidth, maxCols=False):
 
     paddingPercentage = 10 # 10%
-    colSize = cellWidth+cellWidth*(paddingPercentage/100)
+    colSize = cellSize["x"]+cellSize["x"]*(paddingPercentage/100)
     
     if maxCols == False:
         cols = math.floor(layoutWidth/colSize)
@@ -95,17 +95,17 @@ def MatrixDimensionsSolver(totalCells, cellWidth, layoutWidth, maxCols=False):
         cols = maxCols
         colSize = int(layoutWidth/cols)
 
-    cellWidth = int(colSize/(100+paddingPercentage)*100)
-    cellWidth = cellWidth-(colSize-cellWidth)/cols*2
+    cellSize["x"] = int(colSize/(100+paddingPercentage)*100)
+    cellSize["x"] = cellSize["x"]-(colSize-cellSize["x"])/cols*2
     rowSize = int(colSize/16*9)
-    cellHeight = int(cellWidth/16*9)
+    cellHeight = int(cellSize["x"]/16*9)
 
     rows = math.ceil(totalCells/cols)
-    # print(cellWidth, paddedCellWidth, maxCellsWidth, fittingPaddedCellsWidth, newCellWidth, newCellHeight)
+    # print(cellSize["x"], paddedcellSize["x"], maxCellsWidth, fittingPaddedCellsWidth, newcellSize["x"], newCellHeight)
 
-    print(cellWidth, cellHeight, colSize, rowSize, cols, rows)
+    print(cellSize["x"], cellHeight, colSize, rowSize, cols, rows)
     
-    return cellWidth, cellHeight, colSize, rowSize, cols, rows
+    return cellSize["x"], cellHeight, colSize, rowSize, cols, rows
 
 
 class BlankWidget(QWidget):
@@ -115,20 +115,17 @@ class BlankWidget(QWidget):
         self.layout = QHBoxLayout()
         self.setLayout(self.layout)
 
-        # self.edits = [QLineEdit(self) for _ in range(3)]
-        # for edit in self.edits:
-        #     edit.setStyleSheet("background-color: rgb(255, 0, 0);")
-        #     layout.addWidget(edit)
-
         self.wid = QWidget()
-
-        self.wid.setFixedSize(200, 200)
         
         self.wid.setStyleSheet("background-color: rgba(85, 85, 127, 255); border-color:rgba(0, 0, 0, 100); border-width:2px; border-style: solid;")
         # self.wid.setContentsMargins(0,0,0,0)
         self.layout.setContentsMargins(0,0,0,0) 
         self.layout.setSpacing(0)    
         self.layout.addWidget(self.wid)
+        
+
+        self.width = 0
+        self.height = 0
 
 class ProjectSelection(QMainWindow):                  
     
@@ -143,25 +140,6 @@ class ProjectSelection(QMainWindow):
         self.thumbnailLayout.setContentsMargins(0,0,0,0)
         self.thumbnailLayout.setSpacing(0)
         self.thumbnailLayout_container.setLayout(self.thumbnailLayout)
-        
-
-        # button = QPushButton("butt")
-
-        # for i in range(1):
-        #     button = QPushButton(str(i))
-        #     verticalSpacer = QSpacerItem(4, 4, QSizePolicy.Maximum)
-        #     # self.verticalLayout.addItem(verticalSpacer)
-        #     # button.setGeometry(10, 20, 200, 100)
-        #     # button.setFixedHeight(20)
-        #     btnHeight = 60
-        #     button.setFixedSize(300, btnHeight)
-        #     self.verticalLayout.addWidget(button)
-
-        #     # self.layoutContainer.setFixedHeight(i*(btnHeight+15))
-        #     self.layoutContainer.setFixedHeight(1000)
-        #     # self.widget.addWidget(button)
-        # verticalSpacer = QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding)
-        # self.verticalLayout.addItem(verticalSpacer)
 
         self.blurSlider.valueChanged.connect(self.blurSliderFunc)
         self.scaleSlider.valueChanged.connect(self.scaleSliderFunc)
@@ -169,46 +147,16 @@ class ProjectSelection(QMainWindow):
         self.blur_radius = 0
         self.scaleFactor = 1/2.4
 
-        # for i in range(1):
-        #     # btn = QPushButton("OK")
-            
-
-        #     layout = QGridLayout()
-
-        #     # layout.addWidget(Panel(), 0)
-        #     layout.addWidget(Color('red'))
-
-        #     # self.frame_7.setLayout(layout)
-        #     self.widget_p = QWidget()
-        #     self.widget_p.setLayout(layout)
-        #     # self.frame_7.setCentralWidget(widget)
-        #     self.widget_p.setParent(self.frame_7)
-
         self.projectCount = 0
         self.projectList = []
+
+        self.widgetSize = {"x":100, "y":0}
         
-        for i in range(10):
+        for i in range(24):
             self.addNewBlank(self.projectCount) 
             self.projectCount += 1
         
         self.Update()
-
-        # self.addNewBlank() 
-        # self.addNewBlank() 
-        # self.addNewBlank() 
-
-
-    def addNewBlank(self, projectCount):
-
-        self.widget = BlankWidget(self)
-
-        self.projectList.append(self.widget)
-        print(self.projectList)
-
-
-        # self.thumbnailLayout.addWidget(self.widget, 0, projectCount)
-        # self.layout.addWidget(a0, row, column, rowSpan, columnSpan) 
-
 
     # method for widgets
     def WindowParams(self):
@@ -217,20 +165,8 @@ class ProjectSelection(QMainWindow):
         # self.setWindowFlag(QtCore.Qt.FramelessWindowHint)
         self.setAttribute(QtCore.Qt.WA_TranslucentBackground)
         self.setFixedSize(800, 500)
-        # hWin = self.widget_blur.winId()
-        # print(hWin)
-        # blur(hWin)
-
-        
-        # self.frame_2.setBlurRadius(1)
-
-        
-        
 
         self.center()
-  
-        # self.showMaximized()
-
 
     def Update(self):
 
@@ -249,7 +185,7 @@ class ProjectSelection(QMainWindow):
         print(self.thumbnailLayout_container.width())
         layoutWidth = self.thumbnailLayout_container.width()
 
-        cellWidth, cellHeight, colSize, rowSize, cols, rows = MatrixDimensionsSolver(self.projectCount, 100, layoutWidth)
+        cellWidth, cellHeight, colSize, rowSize, cols, rows = MatrixDimensionsSolver(self.projectCount, self.widgetSize, layoutWidth)
         
         spacing = colSize-cellWidth
         # vSpacer = QSpacerItem(spacing, 0, QSizePolicy.Minimum, QSizePolicy.Minimum)
@@ -287,37 +223,6 @@ class ProjectSelection(QMainWindow):
     def scaleSliderFunc(self):
         self.scaleFactor = self.scaleSlider.value()/100+0.25
         self.Update()
-    
-    def createWid(self):
-
-        frame = QFrame(self)
-        frame.setFixedSize(380, 220)
-
-        return frame
-
-class Color(QWidget):
-
-    def __init__(self, color):
-        super(Color, self).__init__()
-        self.setAutoFillBackground(True)
-
-        palette = self.palette()
-        palette.setColor(QPalette.Window, QColor(color))
-        self.setPalette(palette)
-
-class Panel(QWidget):
-
-    def __init__(self):
-        super(Panel, self).__init__()
-        self.setAutoFillBackground(True)
-
-        palette = self.palette()
-        palette.setColor(QPalette.Window, QColor("black"))
-        self.setPalette(palette)
-        # self.setStyleSheet("background-color: black;")
-        self.setFixedSize(200, 200)
-        print("s")
-
 
 #endregion GUI classes
 
