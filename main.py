@@ -82,31 +82,23 @@ class SetupScene(QMainWindow):
         qtRectangle.moveCenter(centerPoint)
         self.move(qtRectangle.topLeft())
 
-
-def MatrixDimensionsSolver(totalCells, cellSize, layoutWidth, maxCols=False):
+def MatrixDimensionsSolver(totalCells, layoutWidth, cols=False):
 
     paddingPercentage = 10 # 10%
-    colSize = cellSize["x"]+cellSize["x"]*(paddingPercentage/100)
     
-    if maxCols == False:
-        cols = math.floor(layoutWidth/colSize)
-        colSize = int(layoutWidth/cols)
-    else:
-        cols = maxCols
-        colSize = int(layoutWidth/cols)
+    colSize = int(layoutWidth/cols)
 
-    cellSize["x"] = int(colSize/(100+paddingPercentage)*100)
-    cellSize["x"] = cellSize["x"]-(colSize-cellSize["x"])/cols*2
+    cellWidth = int(colSize/(100+paddingPercentage)*100)
+    cellWidth = cellWidth-(colSize-cellWidth)/cols*2
     rowSize = int(colSize/16*9)
-    cellHeight = int(cellSize["x"]/16*9)
+    cellHeight = int(cellWidth/16*9)
 
     rows = math.ceil(totalCells/cols)
-    # print(cellSize["x"], paddedcellSize["x"], maxCellsWidth, fittingPaddedCellsWidth, newcellSize["x"], newCellHeight)
+    # print(cellWidth, paddedcellWidth, maxCellsWidth, fittingPaddedCellsWidth, newcellWidth, newCellHeight)
 
-    print(cellSize["x"], cellHeight, colSize, rowSize, cols, rows)
+    # print(cellWidth, cellHeight, colSize, rowSize, cols, rows)
     
-    return cellSize["x"], cellHeight, colSize, rowSize, cols, rows
-
+    return cellWidth, cellHeight, colSize, rowSize, cols, rows
 
 class BlankWidget(QWidget):
     def __init__(self, parent=None):
@@ -122,10 +114,6 @@ class BlankWidget(QWidget):
         self.layout.setContentsMargins(0,0,0,0) 
         self.layout.setSpacing(0)    
         self.layout.addWidget(self.wid)
-        
-
-        self.width = 0
-        self.height = 0
 
 class ProjectSelection(QMainWindow):                  
     
@@ -141,7 +129,7 @@ class ProjectSelection(QMainWindow):
         self.thumbnailLayout.setSpacing(0)
         self.thumbnailLayout_container.setLayout(self.thumbnailLayout)
 
-        self.blurSlider.valueChanged.connect(self.blurSliderFunc)
+        # self.blurSlider.valueChanged.connect(self.blurSliderFunc)
         self.scaleSlider.valueChanged.connect(self.scaleSliderFunc)
 
         self.blur_radius = 0
@@ -150,13 +138,16 @@ class ProjectSelection(QMainWindow):
         self.projectCount = 0
         self.projectList = []
 
-        self.widgetSize = {"x":100, "y":0}
+        self.colNum = 4
         
         for i in range(24):
             self.addNewBlank(self.projectCount) 
             self.projectCount += 1
         
-        self.Update()
+        self.UpdateLayout()
+
+        # QtCore.pyqtSignal()
+        # self.thumbnailLayout_container.
 
     # method for widgets
     def WindowParams(self):
@@ -164,11 +155,11 @@ class ProjectSelection(QMainWindow):
         self.setWindowTitle("Project Selection")
         # self.setWindowFlag(QtCore.Qt.FramelessWindowHint)
         self.setAttribute(QtCore.Qt.WA_TranslucentBackground)
-        self.setFixedSize(800, 500)
+        # self.setFixedSize(800, 500)
 
         self.center()
 
-    def Update(self):
+    def UpdateLayout(self):
 
         # self.blurEffect = QGraphicsBlurEffect()
         # self.blurEffect.setBlurRadius(self.blur_radius)
@@ -182,10 +173,12 @@ class ProjectSelection(QMainWindow):
         # self.frame_2.setFixedSize(380*self.scaleFactor, 220*self.scaleFactor)
         # self.frame_3.setFixedSize(380*self.scaleFactor, 220*self.scaleFactor)
         
-        print(self.thumbnailLayout_container.width())
+        # print(self.thumbnailLayout_container.width())
         layoutWidth = self.thumbnailLayout_container.width()
 
-        cellWidth, cellHeight, colSize, rowSize, cols, rows = MatrixDimensionsSolver(self.projectCount, self.widgetSize, layoutWidth)
+        print(self.projectCount, layoutWidth, self.colNum)
+        cellWidth, cellHeight, colSize, rowSize, cols, rows = MatrixDimensionsSolver(self.projectCount, layoutWidth, self.colNum)
+        print(cellWidth, cellHeight, colSize, rowSize, cols, rows)
         
         spacing = colSize-cellWidth
         # vSpacer = QSpacerItem(spacing, 0, QSizePolicy.Minimum, QSizePolicy.Minimum)
@@ -199,16 +192,16 @@ class ProjectSelection(QMainWindow):
             # widget.layout.setContentsMargins((layoutWidth-colSize*cols)/2, 0,0,0) \
 
             row = math.floor(column/cols)
-            print("Row", row)
+            # print("Row", row)
 
             self.thumbnailLayout.addWidget(widget, row, column-row*(cols))
-            print("Column", column+1-row*(cols))
+            # print("Column", column+1-row*(cols))
         
         vSpacer = QSpacerItem(0, 0, QSizePolicy.Expanding, QSizePolicy.Minimum)
         hSpacer = QSpacerItem(0, 0, QSizePolicy.Minimum, QSizePolicy.Expanding)
 
         self.thumbnailLayout.addItem(vSpacer, row, cols)
-        self.thumbnailLayout.addItem(hSpacer, row+1, 0)
+        self.thumbnailLayout.addItem(hSpacer, row+2, 0)
 
     def center(self):
         qtRectangle = self.frameGeometry()
@@ -216,13 +209,19 @@ class ProjectSelection(QMainWindow):
         qtRectangle.moveCenter(centerPoint)
         self.move(qtRectangle.topLeft())
 
-    def blurSliderFunc(self):
-        self.blur_radius = self.blurSlider.value()/2
-        self.Update()
+    def addNewBlank(self, projectCount):
+
+        self.widget = BlankWidget(self)
+
+        self.projectList.append(self.widget)
+        # print(self.projectList)
 
     def scaleSliderFunc(self):
-        self.scaleFactor = self.scaleSlider.value()/100+0.25
-        self.Update()
+        self.colNum = self.scaleSlider.value()
+        
+        self.scaleSlider_label.setText(f"x{self.colNum}-cols")
+        # print(self.scaleSlider.value())
+        self.UpdateLayout()
 
 #endregion GUI classes
 
