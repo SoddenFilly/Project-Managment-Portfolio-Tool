@@ -89,12 +89,12 @@ def MatrixDimensionsSolver(totalCells, layoutWidth, cols=False):
     
     colSize = int(layoutWidth/cols)
 
-    cellWidth = int(colSize/(100+paddingPercentage)*100)
-    cellWidth = cellWidth-(colSize-cellWidth)/cols*2
+    cellWidth = colSize/(100+paddingPercentage)*100
+    cellWidth = int(cellWidth-(colSize-cellWidth)/cols*2)
     rowSize = int(colSize/16*9)
     cellHeight = int(cellWidth/16*9)
 
-    rows = math.ceil(totalCells/cols)
+    rows = int(math.ceil(totalCells/cols))
     # print(cellWidth, paddedcellWidth, maxCellsWidth, fittingPaddedCellsWidth, newcellWidth, newCellHeight)
 
     # print(cellWidth, cellHeight, colSize, rowSize, cols, rows)
@@ -111,7 +111,6 @@ class BlankWidget(QWidget):
         self.wid = QWidget()
         
         self.wid.setStyleSheet("background-color: rgba(85, 85, 127, 255); border-color:rgba(0, 0, 0, 100); border-width:2px; border-style: solid; padding: 20px;")
-        # self.wid.setContentsMargins(0,0,0,0)
         self.layout.setContentsMargins(0,0,0,0) 
         self.layout.setSpacing(0)    
         self.layout.addWidget(self.wid)
@@ -121,39 +120,23 @@ class ProjectSelection(QMainWindow):
     def __init__(self, settings):
         super(ProjectSelection, self).__init__()
 
+        self.windowInitilisationComplete = False
+
         time.sleep(0.1) # gives time for teminal to catch up
 
-        # print(settings)
-
-        # with open('settings.json', 'w') as f:
-        #     json.dump(settings, f)
-
-        # with open('settings.json', 'r') as f:
-        #     sett = json.load(f)
-        #     print(sett["startup_isFullscreen"])
-
-        self.show()
         uic.loadUi("projectSelection.ui", self) # Loads "" scene
 
         if settings["startup_isFullscreen"] == True:
             self.WindowParams_fullscreen()
         else:
             self.WindowParams_windowed()
-        
-
-
-        
 
         self.thumbnailLayout = QGridLayout()
         self.thumbnailLayout.setContentsMargins(0,0,0,0)
         self.thumbnailLayout.setSpacing(0)
         self.thumbnailLayout_container.setLayout(self.thumbnailLayout)
 
-        # self.blurSlider.valueChanged.connect(self.blurSliderFunc)
         self.scaleSlider.valueChanged.connect(self.scaleSliderFunc)
-
-        self.blur_radius = 0
-        self.scaleFactor = 1/2.4
 
         self.projectCount = 0
         self.projectList = []
@@ -163,73 +146,70 @@ class ProjectSelection(QMainWindow):
         for i in range(5):
             self.addNewBlank(self.projectCount) 
             self.projectCount += 1
-        
 
-        print("s")
+        self.windowInitilisationComplete = True
         self.UpdateLayout()
 
-        # updateThread = threading.Thread(target=self.UpdateLayout, args=[])
-        # updateThread.start()
-
-        # QtCore.pyqtSignal()
-        # self.thumbnailLayout_container.
-
+        self.btnCloseProgram.clicked.connect(self.CloseProgram)
+        self.btnMinimise.clicked.connect(self.showMinimized)
+        self.btnMaximiseToggle.clicked.connect(self.MaximisedToggle)
+        
+        self.show()
         
 
-    # method for widgets
+    def MaximisedToggle(self):
+
+        if int(self.windowState()) == 0:
+            self.WindowParams_fullscreen()
+        elif int(self.windowState()) == 2:
+            self.WindowParams_windowed()
+
+    def CloseProgram(self):
+
+        Animate.opacity(self, self.btnCloseProgram)
+        sys.exit()
+
     def WindowParams_windowed(self):
 
-        self.setWindowTitle("Project Selection")
-        # self.setWindowFlag(QtCore.Qt.FramelessWindowHint)
-        # self.setAttribute(QtCore.Qt.WA_TranslucentBackground)
-        self.setFixedSize(800, 600)
+        self.WindowParams_general()
 
+        self.setFixedSize(800, 642)
+        self.sideBar.setFixedWidth(200)
+        self.showNormal()
         self.center()
-        
+
+        self.UpdateLayout()
 
     def WindowParams_fullscreen(self):
 
-        self.setWindowTitle("Project Selection")
-        # self.setWindowFlag(QtCore.Qt.FramelessWindowHint)
-        # self.setAttribute(QtCore.Qt.WA_TranslucentBackground)
+        self.WindowParams_general()
 
         screenSize = app.primaryScreen().size()
         self.setFixedSize(screenSize.width(), screenSize.height())
+        sideBarWidth = 300
+        self.sideBar.setFixedWidth(sideBarWidth)
         self.showMaximized()
 
-        self.sideBar.setFixedWidth(300)
+        self.thumbnailLayout_container.setMinimumSize(screenSize.width()-sideBarWidth-40, 800)
+        # time.sleep(1)
+        self.UpdateLayout()
 
-        
+    def WindowParams_general(self):
 
-        
-
-        # self.center()
+        self.setWindowTitle("Project Selection")
+        self.setWindowFlag(QtCore.Qt.FramelessWindowHint)
+        # self.setAttribute(QtCore.Qt.WA_TranslucentBackground)
 
     def UpdateLayout(self):
 
-        # self.blurEffect = QGraphicsBlurEffect()
-        # self.blurEffect.setBlurRadius(self.blur_radius)
-        # self.widget_blur.setGraphicsEffect(self.blur_effect)
-        # self.frame.setGraphicsEffect(self.blurEffect)
-        # self.blurEffect = QGraphicsBlurEffect()
-        # self.frame_2.setGraphicsEffect(self.blurEffect)
-        # self.blurEffect.setBlurRadius(self.blur_radius)
-
-        # self.frame.setFixedSize(380*self.scaleFactor, 220*self.scaleFactor)
-        # self.frame_2.setFixedSize(380*self.scaleFactor, 220*self.scaleFactor)
-        # self.frame_3.setFixedSize(380*self.scaleFactor, 220*self.scaleFactor)
-        
-        # print(self.thumbnailLayout_container.width())
-        # print("state:",int(self.windowState()))
-        print("ssss")
-
-       
+        if self.windowInitilisationComplete == False:
+            return
                 
         layoutWidth = self.thumbnailLayout_container.width()
 
         print(self.projectCount, layoutWidth, self.colNum)
         cellWidth, cellHeight, colSize, rowSize, cols, rows = MatrixDimensionsSolver(self.projectCount, layoutWidth, self.colNum)
-        print(cellWidth, cellHeight, colSize, rowSize, cols, rows)
+        # print(cellWidth, cellHeight, colSize, rowSize, cols, rows)
         
         spacing = colSize-cellWidth
         # vSpacer = QSpacerItem(spacing, 0, QSizePolicy.Minimum, QSizePolicy.Minimum)
@@ -244,26 +224,20 @@ class ProjectSelection(QMainWindow):
             # widget.layout.setContentsMargins((layoutWidth-colSize*cols)/2, 0,0,0) \
 
             row = math.floor(column/cols)
-            # print("Row", row)
 
-            self.thumbnailLayout.addWidget(widget, row, column-row*(cols))
-            # print("Column", column+1-row*(cols))
+            self.thumbnailLayout.addWidget(widget, row, column+1-row*(cols))
         
-        vSpacer = QSpacerItem(0, 0, QSizePolicy.Expanding, QSizePolicy.Minimum)
-        hSpacer = QSpacerItem(0, 0, QSizePolicy.Minimum, QSizePolicy.Expanding)
+        hSpacer = QSpacerItem(0, 0, QSizePolicy.Expanding, QSizePolicy.Minimum)
+        vSpacer = QSpacerItem(0, 0, QSizePolicy.Minimum, QSizePolicy.Expanding)
 
-        self.thumbnailLayout.addItem(vSpacer, row, cols)
-        self.thumbnailLayout.addItem(hSpacer, row+2, 0)
-
-        # time.sleep(1)
-
-        # print(self.thumbnailLayout_container.width())
-            
-
-      
+        # self.thumbnailLayout.addItem(hSpacer, 0, 0)
+        # self.thumbnailLayout.addItem(hSpacer, row, cols)
+        self.thumbnailLayout.addItem(vSpacer, row+2, 1)
         
+ 
 
     def center(self):
+
         qtRectangle = self.frameGeometry()
         centerPoint = QDesktopWidget().availableGeometry().center()
         qtRectangle.moveCenter(centerPoint)
@@ -272,15 +246,14 @@ class ProjectSelection(QMainWindow):
     def addNewBlank(self, projectCount):
 
         self.widget = BlankWidget(self)
-
         self.projectList.append(self.widget)
         # print(self.projectList)
 
     def scaleSliderFunc(self):
+
         self.colNum = self.scaleSlider.value()
-        
         self.scaleSlider_label.setText(f"x{self.colNum}-cols")
-        # print(self.scaleSlider.value())
+
         self.UpdateLayout()
 
 #endregion GUI classes
@@ -331,8 +304,6 @@ class Animate: # General Animation mini-library for PYQT5 widgets
 
 if __name__ == "__main__": # Runs only if current file was executed (Not freferenced)
 
-    # MatrixDimensionsSolver(7, 100, 500, 2)
-
     with open("settings.json", "r") as file:
         settings = json.load(file)
 
@@ -341,6 +312,3 @@ if __name__ == "__main__": # Runs only if current file was executed (Not frefere
     # SetupScene = SetupScene()
     ProjectSelection = ProjectSelection(settings)
     app.exec_()
-    # print(math.floor(10/5))
-
-    
