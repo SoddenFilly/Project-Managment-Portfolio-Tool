@@ -85,21 +85,22 @@ class SetupScene(QMainWindow):
 
 def MatrixDimensionsSolver(totalCells, layoutWidth, cols=False):
 
-    paddingPercentage = 10 # 10%
+    paddingPercentage = 5 # 10%
     
     colSize = int(layoutWidth/cols)
 
     cellWidth = colSize/(100+paddingPercentage)*100
     cellWidth = int(cellWidth-(colSize-cellWidth)/cols*2)
-    rowSize = int(colSize/16*9)
-    cellHeight = int(cellWidth/16*9)
+    rowSize = int((colSize/16*9)+(colSize/16*9)/2)
+    cellHeight = int((cellWidth/16*9)+(cellWidth/16*9)/2)
+    imgHeight = int(cellWidth/16*9)
 
     rows = int(math.ceil(totalCells/cols))
     # print(cellWidth, paddedcellWidth, maxCellsWidth, fittingPaddedCellsWidth, newcellWidth, newCellHeight)
 
     # print(cellWidth, cellHeight, colSize, rowSize, cols, rows)
     
-    return cellWidth, cellHeight, colSize, rowSize, cols, rows
+    return cellWidth, cellHeight, colSize, rowSize, cols, rows, imgHeight
 
 class BlankWidget(QWidget):
     def __init__(self, parent=None):
@@ -109,11 +110,45 @@ class BlankWidget(QWidget):
         self.setLayout(self.layout)
 
         self.wid = QWidget()
-        
         self.wid.setStyleSheet("background-color: rgba(85, 85, 127, 255); border-color:rgba(0, 0, 0, 100); border-width:2px; border-style: solid; padding: 20px;")
+        
+        # self.widLayout = QVBoxLayout()
+        # self.temp = QPushButton("tex")
+        # self.temp.setStyleSheet("background-color: rgba(85, 255, 127, 255);")
+        # self.widLayout.addWidget(self.temp)
+        
+        # self.wid.setLayout(self.widLayout)
+        
+
         self.layout.setContentsMargins(0,0,0,0) 
         self.layout.setSpacing(0)    
         self.layout.addWidget(self.wid)
+
+class BlankThumbnailWidget(QWidget):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+
+        self.layout = QVBoxLayout()
+        self.setLayout(self.layout)
+
+        self.wid_img = QWidget()
+        self.wid_img.setStyleSheet("background-color: rgba(85, 85, 127, 255); border-color:rgba(0, 0, 0, 100); border-width:2px; border-style: solid; padding: 20px;")
+        
+        self.wid_info = QWidget()
+        self.wid_info.setStyleSheet("background-color: rgba(50, 50, 110, 255); border-color:rgba(0, 0, 0, 100); border-width:2px; border-style: solid; padding: 20px;")
+        
+        # self.widLayout = QVBoxLayout()
+        # self.temp = QPushButton("tex")
+        # self.temp.setStyleSheet("background-color: rgba(85, 255, 127, 255);")
+        # self.widLayout.addWidget(self.temp)
+        
+        # self.wid.setLayout(self.widLayout)
+        
+
+        self.layout.setContentsMargins(0,0,0,0) 
+        self.layout.setSpacing(0)    
+        self.layout.addWidget(self.wid_img)
+        self.layout.addWidget(self.wid_info)
 
 class ProjectSelection(QMainWindow):                  
     
@@ -143,9 +178,15 @@ class ProjectSelection(QMainWindow):
 
         self.colNum = 4
         
-        for i in range(5):
+        for i in range(42):
             self.addNewBlank(self.projectCount) 
             self.projectCount += 1
+
+
+        self.hSpacer = QSpacerItem(0, 0, QSizePolicy.Expanding, QSizePolicy.Minimum)
+        self.vSpacer = QSpacerItem(0, 0, QSizePolicy.Minimum, QSizePolicy.Expanding)
+
+
 
         self.windowInitilisationComplete = True
         self.UpdateLayout()
@@ -207,32 +248,52 @@ class ProjectSelection(QMainWindow):
                 
         layoutWidth = self.thumbnailLayout_container.width()
 
+        print()
         print(self.projectCount, layoutWidth, self.colNum)
-        cellWidth, cellHeight, colSize, rowSize, cols, rows = MatrixDimensionsSolver(self.projectCount, layoutWidth, self.colNum)
-        # print(cellWidth, cellHeight, colSize, rowSize, cols, rows)
+        cellWidth, cellHeight, colSize, rowSize, cols, rows, imgHeight = MatrixDimensionsSolver(self.projectCount, layoutWidth, self.colNum)
+        print(cellWidth, cellHeight, colSize, rowSize, cols, rows)
         
         spacing = colSize-cellWidth
         # vSpacer = QSpacerItem(spacing, 0, QSizePolicy.Minimum, QSizePolicy.Minimum)
         
         # self.thumbnailLayout.addItem(vSpacer, 0, 0)
 
+        
         for column, widget in enumerate(self.projectList):
             widget.setFixedSize(cellWidth, cellHeight)
+            widget.wid_img.setFixedHeight(imgHeight)
+            
             # widget.layout.wid.setStyleSheet("background-color: blue; padding: 15px;")
             
             self.thumbnailLayout.setSpacing(spacing)
             # widget.layout.setContentsMargins((layoutWidth-colSize*cols)/2, 0,0,0) \
 
             row = math.floor(column/cols)
+            
+            print(column, cols, row)
+            
 
             self.thumbnailLayout.addWidget(widget, row, column+1-row*(cols))
         
-        hSpacer = QSpacerItem(0, 0, QSizePolicy.Expanding, QSizePolicy.Minimum)
-        vSpacer = QSpacerItem(0, 0, QSizePolicy.Minimum, QSizePolicy.Expanding)
+        # hSpacer = QSpacerItem(0, 0, QSizePolicy.Expanding, QSizePolicy.Minimum)
+        # vSpacer = QSpacerItem(0, 0, QSizePolicy.Minimum, QSizePolicy.Expanding)
 
-        # self.thumbnailLayout.addItem(hSpacer, 0, 0)
-        # self.thumbnailLayout.addItem(hSpacer, row, cols)
-        self.thumbnailLayout.addItem(vSpacer, row+2, 1)
+        if self.projectCount < cols:
+            self.thumbnailLayout.addItem(self.hSpacer, row, cols)
+        else:
+            self.thumbnailLayout.removeItem(self.hSpacer)
+
+        print(row)
+        self.thumbnailLayout.addItem(self.vSpacer, row+2, 1)
+        # self.thumbnailLayout.addWidget(widget, row+6, 2)
+
+        self.thumbnailLayout_container.setFixedHeight((rowSize)*(rows+1))
+
+
+        # print(self.thumbnailLayout.children())
+        # print(self.projectList)
+        # for i in self.projectList:
+        #     self.thumbnailLayout.removeWidget(i)
         
  
 
@@ -245,7 +306,7 @@ class ProjectSelection(QMainWindow):
 
     def addNewBlank(self, projectCount):
 
-        self.widget = BlankWidget(self)
+        self.widget = BlankThumbnailWidget(self)
         self.projectList.append(self.widget)
         # print(self.projectList)
 
