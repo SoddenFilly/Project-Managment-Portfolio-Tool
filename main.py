@@ -13,7 +13,7 @@ from PyQt5 import QtCore, QtGui, uic, QtTest
 from PyQt5.QtGui import * 
 from PyQt5.QtCore import *
 # from PyQt5.QLayout import *
-from PyQt5.QtWidgets import QHBoxLayout, QVBoxLayout
+from PyQt5.QtWidgets import QHBoxLayout, QVBoxLayout, QGridLayout
 
 from BlurWindow.blurWindow import blur
 
@@ -36,7 +36,7 @@ class SplashScreen(QMainWindow): # Main scene class that can be repurposed into 
 
         self.fileLocationPath = os.path.dirname(os.path.realpath(__file__)) # Gets files current full directory
         
-        uic.loadUi("splashScreen.ui", self) # Loads "" scene
+        uic.loadUi("Resources/Ui/splashScreen.ui", self) # Loads "" scene
 
 class SetupScene(QMainWindow):                  
     
@@ -44,7 +44,7 @@ class SetupScene(QMainWindow):
         super(SetupScene, self).__init__()
 
         self.show()
-        uic.loadUi("loadPack.ui", self) # Loads "" scene
+        uic.loadUi("Resources/Ui/loadPack.ui", self) # Loads "" scene
         self.WindowParams()
 
         # button = QPushButton("butt")
@@ -137,18 +137,36 @@ class BlankThumbnailWidget(QWidget):
         self.wid_info = QWidget()
         self.wid_info.setStyleSheet("background-color: rgba(50, 50, 110, 255); border-color:rgba(0, 0, 0, 100); border-width:2px; border-style: solid; padding: 20px;")
         
-        # self.widLayout = QVBoxLayout()
-        # self.temp = QPushButton("tex")
-        # self.temp.setStyleSheet("background-color: rgba(85, 255, 127, 255);")
-        # self.widLayout.addWidget(self.temp)
+
         
-        # self.wid.setLayout(self.widLayout)
+
+
+        self.wid_imgLayout = QVBoxLayout()
+        self.wid_img.setLayout(self.wid_imgLayout)
+        self.wid_imgLayout.setContentsMargins(0,0,0,0) 
+        # self.wid_imgLayout.setSpacing(0)
+
+        label = QLabel(self)
+        pixmap = QPixmap('Resources/Img/img.png').scaled(self.wid_img.width(), self.wid_img.height())
+        label.setPixmap(pixmap)
+
+        self.wid_imgLayout.addWidget(label)
+
         
+
+
 
         self.layout.setContentsMargins(0,0,0,0) 
         self.layout.setSpacing(0)    
         self.layout.addWidget(self.wid_img)
         self.layout.addWidget(self.wid_info)
+
+    def mousePressEvent(self, event):
+
+        print("clicked", self, event)
+        # ProjectSelection = ProjectSelection(settings)
+        self.TestWin = TestWindow()
+        
 
 class ProjectSelection(QMainWindow):                  
     
@@ -159,7 +177,7 @@ class ProjectSelection(QMainWindow):
 
         time.sleep(0.1) # gives time for teminal to catch up
 
-        uic.loadUi("projectSelection.ui", self) # Loads "" scene
+        uic.loadUi("Resources/Ui/projectSelection.ui", self) # Loads "" scene
 
         if settings["startup_isFullscreen"] == True:
             self.WindowParams_fullscreen()
@@ -178,15 +196,15 @@ class ProjectSelection(QMainWindow):
 
         self.colNum = 4
         
-        for i in range(42):
-            self.addNewBlank(self.projectCount) 
-            self.projectCount += 1
+        for i in range(7):
+            self.widget = BlankThumbnailWidget(self)
+            self.projectList.append(self.widget)
+            print(self.projectList)
 
+            self.projectCount += 1
 
         self.hSpacer = QSpacerItem(0, 0, QSizePolicy.Expanding, QSizePolicy.Minimum)
         self.vSpacer = QSpacerItem(0, 0, QSizePolicy.Minimum, QSizePolicy.Expanding)
-
-
 
         self.windowInitilisationComplete = True
         self.UpdateLayout()
@@ -194,8 +212,11 @@ class ProjectSelection(QMainWindow):
         self.btnCloseProgram.clicked.connect(self.CloseProgram)
         self.btnMinimise.clicked.connect(self.showMinimized)
         self.btnMaximiseToggle.clicked.connect(self.MaximisedToggle)
-        
+
         self.show()
+
+    def myfunction(self):
+        print("\nSUCCESS\n")
         
 
     def MaximisedToggle(self):
@@ -203,25 +224,42 @@ class ProjectSelection(QMainWindow):
         if int(self.windowState()) == 0:
             self.WindowParams_fullscreen()
         elif int(self.windowState()) == 2:
+            # time.sleep(1)
             self.WindowParams_windowed()
 
     def CloseProgram(self):
+        
+        print(">Exit")
 
         Animate.opacity(self, self.btnCloseProgram)
         sys.exit()
 
     def WindowParams_windowed(self):
 
-        self.WindowParams_general()
+        print(">Window Mode")
 
-        self.setFixedSize(800, 642)
-        self.sideBar.setFixedWidth(200)
+        self.WindowParams_general()
+        # time.sleep(1)
+
+        fixedWindowWidth = 800
+        fixedWindowHeight = 642
+        fixedWindowSidebarWidth = 200
+        self.setFixedSize(fixedWindowWidth, fixedWindowHeight)
+        self.sideBar.setFixedWidth(fixedWindowSidebarWidth)
+        # time.sleep(1)
         self.showNormal()
         self.center()
 
+        # time.sleep(1)
+        self.thumbnailLayout_container.setMinimumSize(fixedWindowWidth-fixedWindowSidebarWidth-40, fixedWindowHeight)
+        self.thumbnailLayout_container.setMaximumSize(fixedWindowWidth-fixedWindowSidebarWidth-40, fixedWindowHeight)
+
+        # time.sleep(1)
         self.UpdateLayout()
 
     def WindowParams_fullscreen(self):
+
+        print(">Fullscreen Mode")
 
         self.WindowParams_general()
 
@@ -229,35 +267,43 @@ class ProjectSelection(QMainWindow):
         self.setFixedSize(screenSize.width(), screenSize.height())
         sideBarWidth = 300
         self.sideBar.setFixedWidth(sideBarWidth)
-        self.showMaximized()
+        # time.sleep(0.1)
+
+        topLeftPoint = QDesktopWidget().availableGeometry().topLeft()
+        self.move(topLeftPoint)
 
         self.thumbnailLayout_container.setMinimumSize(screenSize.width()-sideBarWidth-40, 800)
         # time.sleep(1)
+        self.showMaximized()
+
         self.UpdateLayout()
 
     def WindowParams_general(self):
 
+        pass
         self.setWindowTitle("Project Selection")
         self.setWindowFlag(QtCore.Qt.FramelessWindowHint)
         # self.setAttribute(QtCore.Qt.WA_TranslucentBackground)
 
     def UpdateLayout(self):
+        
+        print(">Updating")
 
         if self.windowInitilisationComplete == False:
             return
                 
         layoutWidth = self.thumbnailLayout_container.width()
+        print(layoutWidth)
 
-        print()
-        print(self.projectCount, layoutWidth, self.colNum)
+        # print()
+        # print(self.projectCount, layoutWidth, self.colNum)
         cellWidth, cellHeight, colSize, rowSize, cols, rows, imgHeight = MatrixDimensionsSolver(self.projectCount, layoutWidth, self.colNum)
-        print(cellWidth, cellHeight, colSize, rowSize, cols, rows)
+        # print(cellWidth, cellHeight, colSize, rowSize, cols, rows)
         
         spacing = colSize-cellWidth
         # vSpacer = QSpacerItem(spacing, 0, QSizePolicy.Minimum, QSizePolicy.Minimum)
         
         # self.thumbnailLayout.addItem(vSpacer, 0, 0)
-
         
         for column, widget in enumerate(self.projectList):
             widget.setFixedSize(cellWidth, cellHeight)
@@ -270,10 +316,14 @@ class ProjectSelection(QMainWindow):
 
             row = math.floor(column/cols)
             
-            print(column, cols, row)
+            # print(column, cols, row)
             
 
             self.thumbnailLayout.addWidget(widget, row, column+1-row*(cols))
+
+            # self.widget.mouseReleaseEvent = lambda a: print("dd")
+            # ss = "ss"
+            exec(f'self.widget.mouseReleaseEvent = lambda e{self.projectCount}: print("{self.projectCount}")')
         
         # hSpacer = QSpacerItem(0, 0, QSizePolicy.Expanding, QSizePolicy.Minimum)
         # vSpacer = QSpacerItem(0, 0, QSizePolicy.Minimum, QSizePolicy.Expanding)
@@ -283,7 +333,7 @@ class ProjectSelection(QMainWindow):
         else:
             self.thumbnailLayout.removeItem(self.hSpacer)
 
-        print(row)
+        # print(row)
         self.thumbnailLayout.addItem(self.vSpacer, row+2, 1)
         # self.thumbnailLayout.addWidget(widget, row+6, 2)
 
@@ -304,12 +354,6 @@ class ProjectSelection(QMainWindow):
         qtRectangle.moveCenter(centerPoint)
         self.move(qtRectangle.topLeft())
 
-    def addNewBlank(self, projectCount):
-
-        self.widget = BlankThumbnailWidget(self)
-        self.projectList.append(self.widget)
-        # print(self.projectList)
-
     def scaleSliderFunc(self):
 
         self.colNum = self.scaleSlider.value()
@@ -317,6 +361,39 @@ class ProjectSelection(QMainWindow):
 
         self.UpdateLayout()
 
+class TestWindow(QMainWindow):                  
+    
+    def __init__(self):
+        super(TestWindow, self).__init__()
+
+        self.windowInitilisationComplete = False
+
+        time.sleep(0.1) # gives time for teminal to catch up
+
+        uic.loadUi("Resources/Ui/testWindow.ui", self) # Loads "" scene
+
+        widget = BlankThumbnailWidget(self)
+        # self.projectList.append(self.widget)
+
+        widget.setFixedSize(160*4, 90*4+90*2)
+        widget.wid_img.setFixedHeight(90*4)
+
+        # self.layoutWid.rem
+
+        self.layout = QGridLayout()
+        self.layoutWid.setLayout(self.layout)
+
+        # widget.layout.wid.setStyleSheet("background-color: blue; padding: 15px;")
+        
+        # self.layoutWid.layout.setSpacing(10)
+        # widget.layout.setContentsMargins((layoutWidth-colSize*cols)/2, 0,0,0) \
+        
+        # print(column, cols, row)
+
+        self.layout.addWidget(widget, 1, 1)
+
+
+        self.show()
 #endregion GUI classes
 
 #region Library classes
@@ -365,11 +442,13 @@ class Animate: # General Animation mini-library for PYQT5 widgets
 
 if __name__ == "__main__": # Runs only if current file was executed (Not freferenced)
 
-    with open("settings.json", "r") as file:
+    with open("Resources/Data/settings.json", "r") as file:
         settings = json.load(file)
 
     app = QApplication(sys.argv)
     # SplashScreen = SplashScreen()
     # SetupScene = SetupScene()
     ProjectSelection = ProjectSelection(settings)
+    # Test = TestWindow(settings)
+
     app.exec_()
