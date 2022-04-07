@@ -37,7 +37,7 @@
      <number>0</number>
     </property>
     <item row="0" column="0" colspan="3">
-     <widget class="QWidget" name="widget" native="true">
+     <widget class="QWidget" name="topBar" native="true">
       <property name="minimumSize">
        <size>
         <width>10</width>
@@ -51,7 +51,9 @@
        </size>
       </property>
       <property name="styleSheet">
-       <string notr="true">background-color: rgb(56, 56, 84);</string>
+       <string notr="true">background-color: rgb(56, 56, 84);
+border-top-left-radius: 5px;
+border-top-right-radius: 5px;</string>
       </property>
       <layout class="QHBoxLayout" name="horizontalLayout">
        <property name="spacing">
@@ -311,7 +313,8 @@ border-style: solid;</string>
       </property>
       <property name="styleSheet">
        <string notr="true">background-color: rgb(93, 93, 139);
-</string>
+background-color: qlineargradient(spread:pad, x1:0.487562, y1:0, x2:0.493, y2:1, stop:0 rgba(93, 93, 139, 255), stop:1 rgba(53, 53, 104, 255));
+background-color: qlineargradient(spread:pad, x1:0.487562, y1:0, x2:0.493, y2:1, stop:0 rgba(93, 93, 139, 255), stop:1 rgba(88, 88, 135, 255));</string>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout">
        <property name="spacing">

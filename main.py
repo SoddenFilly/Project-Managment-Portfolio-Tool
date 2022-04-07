@@ -124,6 +124,41 @@ class BlankWidget(QWidget):
         self.layout.setSpacing(0)    
         self.layout.addWidget(self.wid)
 
+def RoundImgCorners(imgdata, imgtype ='png', size = 64):
+  
+    # Load image
+    image = QImage.fromData(imgdata, imgtype)
+  
+    image.convertToFormat(QImage.Format_ARGB32)
+
+    out_img = QImage(image.width()*4, image.height()*4, QImage.Format_ARGB32)
+    out_img.fill(Qt.transparent)
+
+    brush = QBrush(image)
+
+    painter = QPainter(out_img)
+    painter.setBrush(brush)
+
+    painter.setPen(Qt.NoPen)
+
+    # painter.drawEllipse(0, 0, image.width()*4, image.height()*4)
+    path = QPainterPath()
+    path.moveTo(0, image.height())
+
+    # path.cubicTo(0, image.height(), image.height()/10, image.height()/10, image.height(), 0)
+    # path.drawLine(image.height(), 0, image.width()*4-image.height(), 0)
+    painter.drawRoundedRect(0, 0, out_img.width(), out_img.height(), out_img.width()/4, out_img.width()/4)
+    
+    painter.drawPath(path)
+
+  
+    painter.end()
+  
+    pm = QPixmap.fromImage(out_img)
+  
+    # return back the pixmap data
+    return pm
+
 class BlankThumbnailWidget(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -131,11 +166,14 @@ class BlankThumbnailWidget(QWidget):
         self.layout = QVBoxLayout()
         self.setLayout(self.layout)
 
+
         self.wid_img = QWidget()
-        self.wid_img.setStyleSheet("background-color: rgba(85, 85, 127, 255); border-color:rgba(0, 0, 0, 100); border-width:2px; border-style: solid; padding: 20px;")
+        self.dynamicStyleSheet = f"background-color: rgba(85, 85, 127, 255); border-color:rgba(0, 0, 0, 100); border-width:2px; border-style: solid; padding: 0px; border-top-left-radius: {self.wid_img.width()/20}; border-top-right-radius: {self.wid_img.width()/20};"
+
+        self.wid_img.setStyleSheet(self.dynamicStyleSheet)
         
         self.wid_info = QWidget()
-        self.wid_info.setStyleSheet("background-color: rgba(50, 50, 110, 255); border-color:rgba(0, 0, 0, 100); border-width:2px; border-style: solid; padding: 20px;")
+        self.wid_info.setStyleSheet(f"background-color: rgba(50, 50, 110, 255); border-color:rgba(0, 0, 0, 100); border-width:2px; border-style: solid; padding: 0px; border-bottom-left-radius: {self.wid_info.width()/50}; border-bottom-right-radius: {self.wid_info.width()/50};")
         
 
         
@@ -146,11 +184,15 @@ class BlankThumbnailWidget(QWidget):
         self.wid_imgLayout.setContentsMargins(0,0,0,0) 
         # self.wid_imgLayout.setSpacing(0)
 
-        label = QLabel(self)
-        pixmap = QPixmap('Resources/Img/img.png').scaled(self.wid_img.width(), self.wid_img.height())
-        label.setPixmap(pixmap)
+        self.img = QLabel(self)
 
-        self.wid_imgLayout.addWidget(label)
+        imgdata = open('Resources/Img/img.png', 'rb').read()
+        pixmap = RoundImgCorners(imgdata).scaled(self.wid_img.width(), self.wid_img.height())
+
+        self.img.setPixmap(pixmap)
+        # self.img.setStyleSheet(f"border-top-left-radius: {self.wid_img.width()/20}; border-top-right-radius: {self.wid_img.width()/20};")
+
+        self.wid_imgLayout.addWidget(self.img)
 
         
 
@@ -283,7 +325,7 @@ class ProjectSelection(QMainWindow):
         pass
         self.setWindowTitle("Project Selection")
         self.setWindowFlag(QtCore.Qt.FramelessWindowHint)
-        # self.setAttribute(QtCore.Qt.WA_TranslucentBackground)
+        self.setAttribute(QtCore.Qt.WA_TranslucentBackground)
 
     def UpdateLayout(self):
         
@@ -308,6 +350,11 @@ class ProjectSelection(QMainWindow):
         for column, widget in enumerate(self.projectList):
             widget.setFixedSize(cellWidth, cellHeight)
             widget.wid_img.setFixedHeight(imgHeight)
+            widget.wid_img.setStyleSheet(f"background-color: rgba(85, 85, 127, 255); border-color:rgba(0, 0, 0, 100); border-width:2px; border-style: solid; padding: 0px; border-top-left-radius: {widget.wid_img.width()/20}; border-top-right-radius: {widget.wid_img.width()/20};")
+            # widget.wid_img.setStyleSheet(widget.dynamicStyleSheet)
+            widget.wid_info.setStyleSheet(f"background-color: rgba(50, 50, 110, 255); border-color:rgba(0, 0, 0, 100); border-width:2px; border-style: solid; padding: 0px; border-bottom-left-radius: {widget.wid_info.width()/50}; border-bottom-right-radius: {widget.wid_info.width()/50};")
+        
+
             
             # widget.layout.wid.setStyleSheet("background-color: blue; padding: 15px;")
             
@@ -320,7 +367,7 @@ class ProjectSelection(QMainWindow):
             
 
             self.thumbnailLayout.addWidget(widget, row, column+1-row*(cols))
-
+            
             # self.widget.mouseReleaseEvent = lambda a: print("dd")
             # ss = "ss"
             exec(f'self.widget.mouseReleaseEvent = lambda e{self.projectCount}: print("{self.projectCount}")')
@@ -366,34 +413,47 @@ class TestWindow(QMainWindow):
     def __init__(self):
         super(TestWindow, self).__init__()
 
-        self.windowInitilisationComplete = False
+        # self.setAttribute(QtCore.Qt.WA_TranslucentBackground)
 
         time.sleep(0.1) # gives time for teminal to catch up
 
-        uic.loadUi("Resources/Ui/testWindow.ui", self) # Loads "" scene
+        # uic.loadUi("Resources/Ui/projectWindow.ui", self) # Loads "" scene
+        uic.loadUi("Resources/Ui/projectWindow.ui", self) # Loads "" scene
 
-        widget = BlankThumbnailWidget(self)
-        # self.projectList.append(self.widget)
+        self.setMouseTracking(True)
 
-        widget.setFixedSize(160*4, 90*4+90*2)
-        widget.wid_img.setFixedHeight(90*4)
+        val = self.hasMouseTracking()
 
-        # self.layoutWid.rem
+        print(val)
 
-        self.layout = QGridLayout()
-        self.layoutWid.setLayout(self.layout)
+        # widget = BlankThumbnailWidget(self)
+        # # self.projectList.append(self.widget)
 
-        # widget.layout.wid.setStyleSheet("background-color: blue; padding: 15px;")
+        # widget.setFixedSize(160*4, 90*4+90*2)
+        # widget.wid_img.setFixedHeight(90*4)
+
+        # # self.layoutWid.rem
+
+        # self.layout = QGridLayout()
+        # self.layoutWid.setLayout(self.layout)
+
+        # # widget.layout.wid.setStyleSheet("background-color: blue; padding: 15px;")
         
-        # self.layoutWid.layout.setSpacing(10)
-        # widget.layout.setContentsMargins((layoutWidth-colSize*cols)/2, 0,0,0) \
+        # # self.layoutWid.layout.setSpacing(10)
+        # # widget.layout.setContentsMargins((layoutWidth-colSize*cols)/2, 0,0,0) \
         
-        # print(column, cols, row)
+        # # print(column, cols, row)
 
-        self.layout.addWidget(widget, 1, 1)
+        # self.layout.addWidget(widget, 1, 1)
 
 
         self.show()
+
+        def mouseMoveEvent(self, event):
+
+            print("eventX", event.x())
+
+
 #endregion GUI classes
 
 #region Library classes
@@ -449,6 +509,6 @@ if __name__ == "__main__": # Runs only if current file was executed (Not frefere
     # SplashScreen = SplashScreen()
     # SetupScene = SetupScene()
     ProjectSelection = ProjectSelection(settings)
-    # Test = TestWindow(settings)
+    # Test = TestWindow()
 
     app.exec_()
