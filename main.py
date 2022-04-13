@@ -190,9 +190,37 @@ class BlankThumbnailWidget(QWidget):
         pixmap = RoundImgCorners(imgdata).scaled(self.wid_img.width(), self.wid_img.height())
 
         self.img.setPixmap(pixmap)
+
         # self.img.setStyleSheet(f"border-top-left-radius: {self.wid_img.width()/20}; border-top-right-radius: {self.wid_img.width()/20};")
 
-        self.wid_imgLayout.addWidget(self.img)
+        # self.wid_imgLayout.addWidget(self.img)
+
+
+
+        self.wid_infoLayout = QVBoxLayout()
+        self.wid_info.setLayout(self.wid_infoLayout)
+        # self.wid_infoLayout.setContentsMargins(0,0,0,0) 
+        # self.wid_imgLayout.setSpacing(0)
+
+        self.titleLabel = QLabel()
+        # self.titleLabel = QLabel(self).setText("text")
+        self.titleLabel.setFixedHeight(30)
+
+        self.titleLabel.setStyleSheet("border-radius:10px; background-color: rgba(0,0,0,50); color: rgb(200,200,200);")
+
+        
+        
+        # self.img.setStyleSheet(f"border-top-left-radius: {self.wid_img.width()/20}; border-top-right-radius: {self.wid_img.width()/20};")
+
+        self.wid_infoLayout.addWidget(self.titleLabel)
+
+
+        self.descriptionLabel = QTextEdit()
+        # self.titleLabel = QLabel(self).setText("text")
+        # self.descriptionLabel.setText("tetkfcekd")
+        self.descriptionLabel.setFixedHeight(70)
+
+        self.descriptionLabel.setStyleSheet("border-radius:10px; background-color: rgba(0,0,0,50); color: rgb(200,200,200);")
 
         
 
@@ -203,11 +231,49 @@ class BlankThumbnailWidget(QWidget):
         self.layout.addWidget(self.wid_img)
         self.layout.addWidget(self.wid_info)
 
+    def InjectData(self, data, isProject):
+        # print(data["title"])
+        if isProject:
+            self.wid_imgLayout.addWidget(self.img)
+            self.wid_infoLayout.addWidget(self.descriptionLabel)
+            self.titleLabel.setText(data["title"])
+            self.descriptionLabel.setText(data["description"])
+            # self.wid_imgLayout.addWidget(self.titleLabel)
+        else:
+            
+            self.titleLabel.setText("Add New Project")
+            self.titleLabel.setAlignment(Qt.AlignCenter)
+            self.img.setText(" ")
+
+            plusIcon = QLabel()
+            plusIcon.setStyleSheet("color: rgba(200,200,200,100);")
+            plusIcon.setText("+")
+            plusIcon.setFont(QFont('Arial', 100))
+            plusIcon.setAlignment(Qt.AlignCenter)
+
+            self.wid_imgLayout.addWidget(plusIcon)
+
+
     def mousePressEvent(self, event):
 
         print("clicked", self, event)
+        # print(ProjectSelection.projectList[-1:])
+
         # ProjectSelection = ProjectSelection(settings)
-        self.TestWin = TestWindow()
+        if self == ProjectSelection.projectList[-1:][0]:
+            print("ADD")
+            with open("Resources/Data/thumbnailData.json","r") as file:
+                data = json.load(file)
+            
+            data["stoat"] = {"title": "Stoat", "description": "Total misplay", "imageNames": ["img.png"], "rating": 5, "languageProportions": [["Python", 89.4], ["HTML", 10.6]]}
+
+            with open("Resources/Data/thumbnailData.json","w") as file:
+                json.dump(data, file)
+
+            ProjectSelection.RestartProgram()
+
+        else:
+            self.TestWin = TestWindow()
         
 
 class ProjectSelection(QMainWindow):                  
@@ -237,13 +303,36 @@ class ProjectSelection(QMainWindow):
         self.projectList = []
 
         self.colNum = 4
-        
-        for i in range(7):
-            self.widget = BlankThumbnailWidget(self)
-            self.projectList.append(self.widget)
-            print(self.projectList)
 
+
+
+        with open("Resources/Data/thumbnailData.json", "r") as file:
+            data = json.load(file)
+            # print(data)
+            # print()
+
+        for i in data:
+            
+            self.widget = BlankThumbnailWidget(self)
+            self.widget.InjectData(data[i], True)
+
+            self.projectList.append(self.widget)
             self.projectCount += 1
+
+        self.widget = BlankThumbnailWidget(self)
+        self.widget.InjectData(data[i], False)
+
+        self.projectList.append(self.widget)
+        self.projectCount += 1
+
+
+        
+        # for i in range(7):
+        #     self.widget = BlankThumbnailWidget(self)
+        #     self.projectList.append(self.widget)
+        #     print(self.projectList)
+
+        #     self.projectCount += 1
 
         self.hSpacer = QSpacerItem(0, 0, QSizePolicy.Expanding, QSizePolicy.Minimum)
         self.vSpacer = QSpacerItem(0, 0, QSizePolicy.Minimum, QSizePolicy.Expanding)
@@ -254,12 +343,11 @@ class ProjectSelection(QMainWindow):
         self.btnCloseProgram.clicked.connect(self.CloseProgram)
         self.btnMinimise.clicked.connect(self.showMinimized)
         self.btnMaximiseToggle.clicked.connect(self.MaximisedToggle)
-
+        
         self.show()
 
     def myfunction(self):
         print("\nSUCCESS\n")
-        
 
     def MaximisedToggle(self):
 
@@ -272,9 +360,14 @@ class ProjectSelection(QMainWindow):
     def CloseProgram(self):
         
         print(">Exit")
-
         Animate.opacity(self, self.btnCloseProgram)
-        sys.exit()
+        QtCore.QCoreApplication.quit()
+    
+    def RestartProgram(self):
+        
+        print(">Restart")
+        QtCore.QCoreApplication.quit()
+        QtCore.QProcess.startDetached(sys.executable, sys.argv)
 
     def WindowParams_windowed(self):
 
@@ -335,7 +428,7 @@ class ProjectSelection(QMainWindow):
             return
                 
         layoutWidth = self.thumbnailLayout_container.width()
-        print(layoutWidth)
+        # print(layoutWidth)
 
         # print()
         # print(self.projectCount, layoutWidth, self.colNum)
@@ -370,7 +463,7 @@ class ProjectSelection(QMainWindow):
             
             # self.widget.mouseReleaseEvent = lambda a: print("dd")
             # ss = "ss"
-            exec(f'self.widget.mouseReleaseEvent = lambda e{self.projectCount}: print("{self.projectCount}")')
+            # exec(f'self.widget.mouseReleaseEvent = lambda e{self.projectCount}: print("{self.projectCount}")')
         
         # hSpacer = QSpacerItem(0, 0, QSizePolicy.Expanding, QSizePolicy.Minimum)
         # vSpacer = QSpacerItem(0, 0, QSizePolicy.Minimum, QSizePolicy.Expanding)
@@ -413,7 +506,8 @@ class TestWindow(QMainWindow):
     def __init__(self):
         super(TestWindow, self).__init__()
 
-        # self.setAttribute(QtCore.Qt.WA_TranslucentBackground)
+        self.setAttribute(QtCore.Qt.WA_TranslucentBackground)
+        self.setWindowFlag(QtCore.Qt.FramelessWindowHint)
 
         time.sleep(0.1) # gives time for teminal to catch up
 
@@ -424,7 +518,7 @@ class TestWindow(QMainWindow):
 
         val = self.hasMouseTracking()
 
-        print(val)
+        # print(val)
 
         # widget = BlankThumbnailWidget(self)
         # # self.projectList.append(self.widget)
@@ -447,11 +541,19 @@ class TestWindow(QMainWindow):
         # self.layout.addWidget(widget, 1, 1)
 
 
+        # self.WindowParams_general()
         self.show()
 
-        def mouseMoveEvent(self, event):
+        def WindowParams_general(self):
 
-            print("eventX", event.x())
+            self.setWindowTitle("--")
+            self.setWindowFlag(QtCore.Qt.FramelessWindowHint)
+            self.setAttribute(QtCore.Qt.WA_TranslucentBackground)
+
+        def mouseMoveEvent(self, event):
+            pass
+
+            # print("eventX", event.x())
 
 
 #endregion GUI classes
@@ -500,10 +602,24 @@ class Animate: # General Animation mini-library for PYQT5 widgets
 
 #endregion Classes
 
-if __name__ == "__main__": # Runs only if current file was executed (Not freferenced)
+def MAIN():
+
+    global app
+    global ProjectSelection
 
     with open("Resources/Data/settings.json", "r") as file:
         settings = json.load(file)
+
+    with open("Resources/Data/thumbnailData.json", "r") as file:
+        data = json.load(file)
+        # print(data)
+        # print()
+        # for i in data:
+        #     print(data[i])
+    
+    # with open("Resources/Data/thumbnailData.json", "w") as file:
+    #     # print(json.load(file))
+    #     json.dump(dic, file)
 
     app = QApplication(sys.argv)
     # SplashScreen = SplashScreen()
@@ -512,3 +628,32 @@ if __name__ == "__main__": # Runs only if current file was executed (Not frefere
     # Test = TestWindow()
 
     app.exec_()
+
+    return 1
+
+
+if __name__ == "__main__": # Runs only if current file was executed (Not freferenced)
+
+    # with open("Resources/Data/settings.json", "r") as file:
+    #     settings = json.load(file)
+
+    # with open("Resources/Data/thumbnailData.json", "r") as file:
+    #     data = json.load(file)
+    #     # print(data)
+    #     # print()
+    #     # for i in data:
+    #     #     print(data[i])
+    
+    # # with open("Resources/Data/thumbnailData.json", "w") as file:
+    # #     # print(json.load(file))
+    # #     json.dump(dic, file)
+
+    # app = QApplication(sys.argv)
+    # # SplashScreen = SplashScreen()
+    # # SetupScene = SetupScene()
+    # ProjectSelection = ProjectSelection(settings)
+    # # Test = TestWindow()
+
+    # app.exec_()
+
+    MAIN()
