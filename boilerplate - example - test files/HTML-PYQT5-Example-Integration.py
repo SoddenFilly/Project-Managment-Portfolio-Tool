@@ -11,7 +11,7 @@ class Ui_Dialog(object):
         self.webEngineView =               QtWebEngineWidgets.QWebEngineView(self.centralwidget)
         # self.webEngineView.load(QtCore.QUrl().fromLocalFile('test.html'))
         # self.webEngineView.load(QUrl.fromLocalFile("/full/path/of/index.html"))
-        self.webEngineView.load(QtCore.QUrl("C:/Users/aidan/Dev_Files/Python/Projects/Project-Management-Portfolio-Tool/test2.html"))
+        self.webEngineView.load(QtCore.QUrl("C:/Users/aidan/Dev_Files/Python/Projects/Project-Management-Portfolio-Tool/boilerplate - example - test files/test2.html"))
         self.verticalLayout.addWidget(self.webEngineView)
         self.buttonBox = QtWidgets.QDialogButtonBox(Dialog)
         self.buttonBox.setOrientation(QtCore.Qt.Horizontal)
